@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+
+using ProvaPub.Factories;
 using ProvaPub.Repository;
 using ProvaPub.Services;
 using ProvaPub.Services.Interfaces;
@@ -18,6 +20,14 @@ builder.Services.AddDbContext<TestDbContext>(options =>
 
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
+builder.Services.AddTransient<IPaymentService, PixPaymentService>();
+builder.Services.AddTransient<IPaymentService, CreditCardPaymentService>();
+builder.Services.AddTransient<IPaymentService, PaypalPaymentService>();
+
+builder.Services.AddTransient<PaymentServiceFactory>();
+
 
 
 var app = builder.Build();
