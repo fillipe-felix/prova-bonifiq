@@ -1,9 +1,10 @@
-﻿namespace ProvaPub.Models
+﻿namespace ProvaPub.Models;
+
+public class ProductList : PagedList<Product>
 {
-	public class ProductList
-	{
-		public List<Product> Products { get; set; }
-		public int TotalCount { get; set; }
-		public bool HasNext { get; set; }
-	}
+    public List<Product> Products
+    {
+        get => Items;
+        set => Items = value;
+    }
 }
