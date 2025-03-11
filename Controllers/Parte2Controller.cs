@@ -27,13 +27,73 @@ namespace ProvaPub.Controllers
 			_productService = productService;
 			_customerService = customerService;
 		}
-	
+		
+		/// <summary>
+		/// Retrieves a paginated list of products.
+		/// </summary>
+		/// <param name="page">The page number to retrieve. Must be greater than or equal to 1.</param>
+		/// <returns>A paginated list of products, including product details and whether there are more pages available.</returns>
+		/// <remarks>
+		/// Example of a paged result:
+		/// 
+		/// ```json
+		/// {
+		///     "items": [
+		///         {
+		///             "id": 1,
+		///             "name": "Product A"
+		///         },
+		///         {
+		///             "id": 2,
+		///             "name": "Product B"
+		///         }
+		///     ],
+		///     "totalCount": 50,
+		///     "hasNext": true
+		/// }
+		/// ```
+		/// </remarks>
+		/// <response code="200">Returns the paginated list of products.</response>
+		/// <response code="400">Returned if the page parameter is invalid.</response>
+		[ProducesResponseType(typeof(ProductList), StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[HttpGet("products")]
 		public ProductList ListProducts(int page)
 		{
 			return _productService.ListProducts(page);
 		}
 
+		/// <summary>
+		/// Retrieves a paginated list of customers.
+		/// </summary>
+		/// <param name="page">The page number to retrieve. Must be greater than or equal to 1.</param>
+		/// <returns>A paginated list of customers, including customer details and whether there are more pages available.</returns>
+		/// <remarks>
+		/// Example of a paged result:
+		/// 
+		/// ```json
+		/// {
+		///     "items": [
+		///         {
+		///             "id": 1,
+		///             "name": "Customer A",
+		///             "orders": []
+		///         },
+		///         {
+		///             "id": 2,
+		///             "name": "Customer B",
+		///             "orders": []
+		///         }
+		///     ],
+		///     "totalCount": 100,
+		///     "hasNext": true
+		/// }
+		/// ```
+		/// </remarks>
+		/// <response code="200">Returns the paginated list of customers.</response>
+		/// <response code="400">Returned if the page parameter is invalid.</response>
+		[ProducesResponseType(typeof(CustomerList), StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[HttpGet("customers")]
 		public CustomerList ListCustomers(int page)
 		{

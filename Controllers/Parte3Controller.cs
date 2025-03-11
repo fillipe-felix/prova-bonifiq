@@ -26,6 +26,20 @@ namespace ProvaPub.Controllers
             _orderService = orderService;
         }
 
+        /// <summary>
+        /// Places an order and processes the payment. Accepts multiple payment methods such as Pix, Credit Card, and PayPal.
+        /// </summary>
+        /// <param name="paymentMethod">The payment method used for the order (e.g., Pix=0, Credit Card=1, PayPal=2).</param>
+        /// <param name="paymentValue">The amount to be paid for the order.</param>
+        /// <param name="customerId">The ID of the customer placing the order.</param>
+        /// <returns>
+        /// A JSON object containing the order details with the local Brazilian time zone (UTC-3) applied to the OrderDate.
+        /// Success returns HTTP 200 with the order details.
+        /// Failure scenarios return appropriate HTTP status codes.
+        /// </returns>
+        /// <response code="200">Returned when the order is successfully processed.</response>
+        /// <response code="400">Returned if the input parameters are invalid (e.g., negative payment value).</response>
+        /// <response code="500">Returned if an internal server error occurs while processing the order.</response>
         [HttpGet("orders")]
         public async Task<IActionResult> PlaceOrder(PaymentMethod paymentMethod, decimal paymentValue, int customerId)
         {
