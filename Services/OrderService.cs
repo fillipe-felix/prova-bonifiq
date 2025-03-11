@@ -8,18 +8,23 @@ namespace ProvaPub.Services
 {
 	public class OrderService : IOrderService
 	{
+		private readonly ICustomerRepository _customerRepository;
 		private readonly IOrderRepository _orderRepository;
 		private readonly PaymentServiceFactory _paymentServiceFactory;
 
-		public OrderService(PaymentServiceFactory paymentServiceFactory, IOrderRepository orderRepository)
+		public OrderService(PaymentServiceFactory paymentServiceFactory, IOrderRepository orderRepository, ICustomerRepository customerRepository)
 		{
 			_paymentServiceFactory = paymentServiceFactory;
 			_orderRepository = orderRepository;
+			_customerRepository = customerRepository;
 		}
 
 
         public async Task<Order> PayOrder(PaymentMethod paymentMethod, decimal paymentValue, int customerId)
 		{
+			var customer = await _customerRepository.GetByIdAsync(customerId);
+			if (customer == null) throw new InvalidOperationException($"Customer Id {customerId} does not exists");
+			
 			var paymentService = _paymentServiceFactory.GetPaymentService(paymentMethod);
 			await paymentService.ProcessPayment(paymentValue, customerId);
 

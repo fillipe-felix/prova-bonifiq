@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
 using ProvaPub.Factories;
+using ProvaPub.Providers;
+using ProvaPub.Providers.Interfaces;
 using ProvaPub.Repository;
 using ProvaPub.Repository.Interfaces;
 using ProvaPub.Services;
@@ -23,6 +25,8 @@ builder.Services.AddScoped<IRandomService, RandomService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IDateTimeProvider, DateTimeProvider>();
+
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
