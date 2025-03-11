@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using ProvaPub.Factories;
 using ProvaPub.Repository;
+using ProvaPub.Repository.Interfaces;
 using ProvaPub.Services;
 using ProvaPub.Services.Interfaces;
 
@@ -18,9 +19,12 @@ builder.Services.AddSingleton<RandomService>();
 builder.Services.AddDbContext<TestDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("ctx")));
 
+builder.Services.AddScoped<IRandomService, RandomService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddTransient<IPaymentService, PixPaymentService>();
 builder.Services.AddTransient<IPaymentService, CreditCardPaymentService>();

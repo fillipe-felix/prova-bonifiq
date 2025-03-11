@@ -1,20 +1,20 @@
 ﻿using ProvaPub.Enums;
 using ProvaPub.Factories;
 using ProvaPub.Models;
-using ProvaPub.Repository;
+using ProvaPub.Repository.Interfaces;
 using ProvaPub.Services.Interfaces;
 
 namespace ProvaPub.Services
 {
 	public class OrderService : IOrderService
 	{
-		private readonly TestDbContext _ctx;
+		private readonly IOrderRepository _orderRepository;
 		private readonly PaymentServiceFactory _paymentServiceFactory;
 
-		public OrderService(TestDbContext ctx, PaymentServiceFactory paymentServiceFactory)
+		public OrderService(PaymentServiceFactory paymentServiceFactory, IOrderRepository orderRepository)
 		{
-			_ctx = ctx;
 			_paymentServiceFactory = paymentServiceFactory;
+			_orderRepository = orderRepository;
 		}
 
 
@@ -30,13 +30,14 @@ namespace ProvaPub.Services
 				OrderDate = DateTime.UtcNow // Salvando em UTC
 			};
 
-			return await InsertOrder(order);
+			await InsertOrder(order);
+			return order;
 		}
 
-		private async Task<Order> InsertOrder(Order order)
+		private async Task InsertOrder(Order order)
         {
 			//Insere pedido no banco de dados
-			return (await _ctx.Orders.AddAsync(order)).Entity;
+			await _orderRepository.CreateOrderAsync(order);
         }
 	}
 }

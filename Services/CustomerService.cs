@@ -1,60 +1,59 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ProvaPub.Models;
-using ProvaPub.Repository;
+﻿using ProvaPub.Models;
+using ProvaPub.Providers.Interfaces;
+using ProvaPub.Repository.Interfaces;
 using ProvaPub.Services.Interfaces;
 
-namespace ProvaPub.Services
+namespace ProvaPub.Services;
+
+public class CustomerService : PagedListService, ICustomerService
 {
-    public class CustomerService : PagedListService, ICustomerService
+    private readonly ICustomerRepository _customerRepository;
+    private readonly IDateTimeProvider _dateTime;
+
+    public CustomerService(ICustomerRepository customerRepository, IDateTimeProvider dateTime)
     {
-         private readonly TestDbContext _ctx;
+        _customerRepository = customerRepository;
+        _dateTime = dateTime;
+    }
 
-        public CustomerService(TestDbContext ctx)
+    public CustomerList ListCustomers(int page)
+    {
+        var query = _customerRepository.GetAll();
+        var customers = GetPagedData(query, page, out int totalCount, out bool hasNext);
+
+        return new CustomerList
         {
-            _ctx = ctx;
-        }
-        
-        public CustomerList ListCustomers(int page)
-        {
-            var query = _ctx.Customers;
-            var customers = GetPagedData(query, page, out int totalCount, out bool hasNext);
-            
-            return new CustomerList
-            {
-                Customers = customers,
-                TotalCount = totalCount,
-                HasNext = hasNext
-            };
-        }
+            Customers = customers,
+            TotalCount = totalCount,
+            HasNext = hasNext
+        };
+    }
 
-        public async Task<bool> CanPurchase(int customerId, decimal purchaseValue)
-        {
-            if (customerId <= 0) throw new ArgumentOutOfRangeException(nameof(customerId));
+    public async Task<bool> CanPurchase(int customerId, decimal purchaseValue)
+    {
+        if (customerId <= 0) throw new ArgumentOutOfRangeException(nameof(customerId));
 
-            if (purchaseValue <= 0) throw new ArgumentOutOfRangeException(nameof(purchaseValue));
+        if (purchaseValue <= 0) throw new ArgumentOutOfRangeException(nameof(purchaseValue));
 
-            //Business Rule: Non registered Customers cannot purchase
-            var customer = await _ctx.Customers.FindAsync(customerId);
-            if (customer == null) throw new InvalidOperationException($"Customer Id {customerId} does not exists");
+        //Business Rule: Non registered Customers cannot purchase
+        var customer = await _customerRepository.GetByIdAsync(customerId);
+        if (customer == null) throw new InvalidOperationException($"Customer Id {customerId} does not exists");
 
-            //Business Rule: A customer can purchase only a single time per month
-            var baseDate = DateTime.UtcNow.AddMonths(-1);
-            var ordersInThisMonth = await _ctx.Orders.CountAsync(s => s.CustomerId == customerId && s.OrderDate >= baseDate);
-            if (ordersInThisMonth > 0)
-                return false;
+        //Business Rule: A customer can purchase only a single time per month
+        var baseDate = _dateTime.UtcNow.AddMonths(-1);
+        var ordersInThisMonth = await _customerRepository.HasPurchasedInLastMonthAsync(customerId, baseDate);
+        if (ordersInThisMonth)
+            return false;
 
-            //Business Rule: A customer that never bought before can make a first purchase of maximum 100,00
-            var haveBoughtBefore = await _ctx.Customers.CountAsync(s => s.Id == customerId && s.Orders.Any());
-            if (haveBoughtBefore == 0 && purchaseValue > 100)
-                return false;
+        //Business Rule: A customer that never bought before can make a first purchase of maximum 100,00
+        var haveBoughtBefore = await _customerRepository.HasEverPurchasedAsync(customerId);
+        if (haveBoughtBefore && purchaseValue > 100)
+            return false;
 
-            //Business Rule: A customer can purchases only during business hours and working days
-            if (DateTime.UtcNow.Hour < 8 || DateTime.UtcNow.Hour > 18 || DateTime.UtcNow.DayOfWeek == DayOfWeek.Saturday || DateTime.UtcNow.DayOfWeek == DayOfWeek.Sunday)
-                return false;
+        //Business Rule: A customer can purchases only during business hours and working days
+        if (_dateTime.UtcNow.Hour < 8 || _dateTime.UtcNow.Hour > 18 || _dateTime.UtcNow.DayOfWeek == DayOfWeek.Saturday || _dateTime.UtcNow.DayOfWeek == DayOfWeek.Sunday)
+            return false;
 
-
-            return true;
-        }
-
+        return true;
     }
 }
